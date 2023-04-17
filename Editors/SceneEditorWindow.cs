@@ -9,6 +9,7 @@ public class SceneEditorWindow : EditorWindow
 {
     // private HashSet<string> _buildScenes;
     // private string[] _scenes;
+    private Vector2 _scrollPosition;
     private static IEnumerable<string> FindScenes()
     {
         return AssetDatabase.FindAssets("t:Scene").Select(AssetDatabase.GUIDToAssetPath);
@@ -38,6 +39,7 @@ public class SceneEditorWindow : EditorWindow
             dirty = true;
             return false;
         }).Select(it => it.path).ToHashSet();
+        _scrollPosition = GUILayout.BeginScrollView(_scrollPosition);
         foreach (var scene in scenes)
         {
             GUILayout.BeginHorizontal();
@@ -68,6 +70,7 @@ public class SceneEditorWindow : EditorWindow
 
             GUILayout.EndHorizontal();
         }
+        GUILayout.EndScrollView();
 
         if (dirty)
         {
