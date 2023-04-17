@@ -1,8 +1,12 @@
 {
+  "author": {
+    "name": "Little Lion",
+    "url": "https://github.com/little-lion-libraries"
+  },
   "description": "",
   "displayName": "Unity Scene Extensions",
   "keywords": [],
   "name": "com.little-lion.unity-scene-extensions",
   "unity": "2021.3",
-  "version": "1.1.0"
+  "version": "1.1.1"
 }
