@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -7,9 +8,10 @@ using UnityEngine;
 
 public class SceneEditorWindow : EditorWindow
 {
-    // private HashSet<string> _buildScenes;
-    // private string[] _scenes;
+    private HashSet<string> _buildScenes;
+    private HashSet<string> _scenes;
     private Vector2 _scrollPosition;
+
     private static IEnumerable<string> FindScenes()
     {
         return AssetDatabase.FindAssets("t:Scene").Select(AssetDatabase.GUIDToAssetPath);
@@ -23,22 +25,41 @@ public class SceneEditorWindow : EditorWindow
         window.Show();
     }
 
+    private static void LoadScene(string scenePath)
+    {
+        EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo();
+        EditorSceneManager.OpenScene(scenePath);
+    }
+
     // private void OnEnable()
     // {
     //     _buildScenes = EditorBuildSettings.scenes.Select(it => it.path).ToHashSet();
     //     _scenes = FindScenes().ToArray();
     // }
-
-    private void OnGUI()
+    private void OnFocus()
     {
         var dirty = false;
-        var scenes = FindScenes().ToHashSet();
-        var buildScenes = EditorBuildSettings.scenes.Where(it =>
+        _scenes = FindScenes().ToHashSet();
+        _buildScenes = EditorBuildSettings.scenes.Where(it =>
         {
-            if (scenes.Contains(it.path)) return true;
+            if (_scenes.Contains(it.path)) return true;
             dirty = true;
             return false;
         }).Select(it => it.path).ToHashSet();
+        if (dirty)
+        {
+            UpdateBuildScenes(_buildScenes);
+        }
+    }
+
+    private void OnGUI()
+    {
+        Step(_buildScenes, _scenes);
+    }
+
+    private void Step(HashSet<string> buildScenes, HashSet<string> scenes)
+    {
+        var dirty = false;
         _scrollPosition = GUILayout.BeginScrollView(_scrollPosition);
         foreach (var scene in scenes)
         {
@@ -70,18 +91,18 @@ public class SceneEditorWindow : EditorWindow
 
             GUILayout.EndHorizontal();
         }
+
         GUILayout.EndScrollView();
 
         if (dirty)
         {
-            EditorBuildSettings.scenes = buildScenes.Select(it => new EditorBuildSettingsScene(it, true)).ToArray();
+            UpdateBuildScenes(buildScenes);
         }
     }
 
-    private static void LoadScene(string scenePath)
+    private void UpdateBuildScenes(IEnumerable<string> buildScenes)
     {
-        EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo();
-        EditorSceneManager.OpenScene(scenePath);
+        EditorBuildSettings.scenes = buildScenes.Select(it => new EditorBuildSettingsScene(it, true)).ToArray();
     }
 }
 #endif
